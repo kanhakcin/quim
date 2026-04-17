@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baralho Cósmico Atômico - Jogo Educativo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --space-bg-start: #000428;
+            --space-bg-end: #004e92;
+            --nebula-purple: #6a0dad;
+            --star-white: #ffffff;
+            --neon-cyan: #00f5ff;
+            --neon-magenta: #ff00ff;
+            --neon-yellow: #ffff00;
+            --cosmic-glow: rgba(0, 245, 255, 0.6);
+            --card-metal: linear-gradient(145deg, #4e89ae, #2d5a7a);
+            --card-ametal: linear-gradient(145deg, #43a047, #2d5a3a);
+            --card-nobre: linear-gradient(145deg, #757575, #4a4a4a);
+            --text-main: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(-45deg, var(--space-bg-start), var(--space-bg-end), var(--nebula-purple));
+            background-size: 400% 400%;
+            animation: nebulaShift 15s ease infinite;
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
+            background-image: radial-gradient(2px 2px at 20px 30px, var(--star-white), transparent), radial-gradient(2px 2px at 40px 70px, var(--neon-cyan), transparent), radial-gradient(1px 1px at 90px 40px, var(--neon-yellow), transparent), radial-gradient(1px 1px at 130px 80px, var(--neon-magenta), transparent);
+            background-repeat: repeat; background-size: 200px 100px;
+            animation: starsTwinkle 20s linear infinite; z-index: 1;
+        }
+
+        @keyframes nebulaShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        @keyframes starsTwinkle { 0% { transform: translateY(0px) rotate(0deg); opacity: 1; } 100% { transform: translateY(-100px) rotate(360deg); opacity: 0; } }
+
+        #hud { width: 100%; display: flex; justify-content: space-around; padding: 15px; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); border-bottom: 3px solid var(--neon-cyan); box-shadow: 0 4px 20px var(--cosmic-glow); z-index: 10; position: relative; }
+        .player-score { text-align: center; padding: 10px 20px; border-radius: 15px; background: rgba(255,255,255,0.1); border: 2px solid transparent; transition: all 0.3s ease; font-weight: 700; text-shadow: 0 0 10px var(--neon-cyan); }
+        .player-score.active { background: linear-gradient(145deg, var(--neon-cyan), var(--neon-magenta)); border-color: var(--star-white); box-shadow: 0 0 20px var(--cosmic-glow); transform: scale(1.1); }
+
+        #game-board { height: 100vh; display: flex; flex-direction: column; padding: 5px; gap: 5px; justify-content: flex-start; align-items: center; position: relative; z-index: 5; }
+        #msg-box { height: 40px; font-size: 1.2em; font-weight: 700; text-align: center; text-shadow: 0 0 15px var(--neon-yellow); animation: glowPulse 2s ease-in-out infinite alternate; }
+        @keyframes glowPulse { from { text-shadow: 0 0 15px var(--neon-yellow); } to { text-shadow: 0 0 25px var(--neon-yellow), 0 0 35px var(--neon-yellow); } }
+
+        #mesa { min-height: 180px; display: flex; gap: 15px; align-items: center; justify-content: center; border: 3px dashed var(--neon-cyan); width: 85%; max-width: 800px; border-radius: 25px; padding: 20px; background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 70%); box-shadow: inset 0 0 50px rgba(0,245,255,0.3); position: relative; overflow: hidden; }
+        #mesa::before { content: ''; position: absolute; top: 50%; left: 50%; width: 100px; height: 100px; background: radial-gradient(circle, var(--neon-magenta) 0%, transparent 70%); transform: translate(-50%, -50%) scale(0); border-radius: 50%; animation: portalPulse 3s ease-in-out infinite; }
+        @keyframes portalPulse { 0%, 100% { transform: translate(-50%, -50%) scale(0); opacity: 1; } 50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; } }
+
+        .hand { display: flex; gap: 15px; padding: 25px; perspective: 1200px; flex-wrap: wrap; justify-content: center; }
+        .card { width: 140px; height: 200px; border-radius: 20px; border: 4px solid var(--star-white); cursor: pointer; position: relative; transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); user-select: none; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 15px; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2); }
+        .card:hover { transform: translateY(-15px) rotateX(10deg) rotateY(10deg); box-shadow: 0 20px 40px rgba(0,245,255,0.4); }
+        .card.selected { border-color: var(--neon-yellow); box-shadow: 0 0 30px var(--neon-yellow), 0 20px 40px rgba(0,0,0,0.5); transform: scale(1.05); }
+        .card.metal { background: var(--card-metal); } .card.ametal { background: var(--card-ametal); } .card.nobre { background: var(--card-nobre); } .card.special { background: linear-gradient(145deg, #ff6b6b, #feca57); }
+        .card-atom { width: 90px; height: 90px; margin: 10px 0; }
+        .orbit { stroke: var(--cosmic-glow); stroke-width: 1; fill: none; animation: orbitRotate 3s linear infinite; }
+        .nucleus { fill: var(--neon-cyan); stroke: var(--star-white); stroke-width: 2; }
+        @keyframes orbitRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .card-symbol { font-size: 2.5em; font-weight: 900; text-shadow: 0 0 10px currentColor; margin: 5px 0; }
+        .card-name { font-size: 1em; font-weight: 700; }
+        .card-valence { font-size: 0.9em; font-weight: bold; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+
+        .controls { display: flex; gap: 10px; margin-top: 10px; position: sticky; top: 80px; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 20px; z-index: 20; justify-content: center; }
+        button { padding: 15px 30px; border: none; border-radius: 25px; background: linear-gradient(145deg, var(--neon-cyan), var(--neon-magenta)); color: var(--text-main); font-family: 'Orbitron', monospace; font-weight: 700; font-size: 1.1em; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(0,245,255,0.4); text-shadow: 0 0 10px var(--star-white); position: relative; overflow: hidden; margin: 0 5px; }
+        button#btn-help { background: var(--neon-yellow); font-size: 1.5em; padding: 12px 20px; position: fixed; top: 80px; right: 20px; z-index: 30; }
+        button::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); transition: left 0.5s; }
+        button:hover::before { left: 100%; } button:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,245,255,0.6); } button:active { transform: translateY(0); } button:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
+        #overlay, #win-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        #overlay h1, #win-overlay h1 { font-size: 3em; margin-bottom: 20px; background: linear-gradient(45deg, var(--neon-cyan), var(--neon-magenta), var(--neon-yellow)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: rainbow 2s linear infinite; }
+        @keyframes rainbow { 0% { background-position: 0%; } 100% { background-position: 200%; } }
+        #win-overlay { text-align: center; font-size: 1.5em; }
+        #win-message { font-size: 2.5em; margin: 20px 0; color: var(--neon-yellow); text-shadow: 0 0 30px var(--neon-yellow); animation: celebrate 1s ease-in-out infinite; }
+        @keyframes celebrate { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+        #help-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #help-modal .modal-content { background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); border: 3px solid var(--neon-cyan); border-radius: 25px; padding: 40px; max-width: 700px; max-height: 80vh; overflow-y: auto; color: var(--text-main); font-family: 'Orbitron'; text-align: center; box-shadow: 0 0 50px var(--cosmic-glow); }
+        #help-modal h1, #help-modal h2, #help-modal h3 { background: linear-gradient(45deg, var(--neon-cyan), var(--neon-magenta)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        #help-modal ul, #help-modal ol { text-align: left; max-width: 500px; margin: 0 auto; font-size: 1.1em; line-height: 1.8; }
+        #help-modal button { margin-top: 30px; padding: 18px 36px; background: linear-gradient(145deg, var(--neon-magenta), var(--neon-cyan)); border: none; border-radius: 25px; color: white; font-weight: bold; font-size: 1.2em; cursor: pointer; box-shadow: 0 8px 25px rgba(255,0,255,0.4); transition: all 0.3s; }
+
+        @media (max-width: 768px) { .card { width: 110px; height: 160px; } .hand { gap: 10px; padding: 15px; } #mesa { width: 95%; padding: 15px; } }
+    </style>
+</head>
+<body>
+    <div id="hud">
+        <div id="p0-score" class="player-score">Jogador 1: 0</div>
+        <div id="p1-score" class="player-score">Jogador 2: 0</div>
+        <div id="p2-score" class="player-score">Jogador 3: 0</div>
+        <div id="p3-score" class="player-score">Jogador 4: 0</div>
+    </div>
+    <div id="game-board">
+        <div id="msg-box">🚀 Bem-vindo ao Baralho Cósmico Atômico! 🌌</div>
+        <div id="mesa">
+            <p id="mesa-instrucao">🌀 Selecione cartas para formar ligações químicas interestelares!</p>
+        </div>
+        <div id="current-hand" class="hand"></div>
+        <div class="controls" style="justify-content: center;">
+            <button id="btn-help" onclick="toggleHelp()" style="background: var(--neon-yellow); padding: 12px 20px; font-size: 1.5em; margin: 0 10px;">❓</button>
+            <button id="btn-confirmar" onclick="confirmarJogada()" disabled style="margin: 0 5px;">⚡ Confirmar</button>
+            <button id="btn-comprar" onclick="comprarCarta()" disabled style="margin: 0 5px;">🔄 Comprar</button>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" style="display: none;">
+        <div class="modal-content">
+            <h1>🧪 Regras do Jogo</h1>
+            
+            <h2>🎯 Objetivo</h2>
+            <p>Forme ligações químicas válidas para ganhar pontos! O jogador com mais pontos quando o baralho acabar vence!</p>
+            
+            <h2>⚗️ Ligação Iônica (Metal + Ametal)</h2>
+            <p>Soma das valências deve ser par • 25 + (nº ametais × 5) pontos<br><small>Ex: Ca(v=2) + 2Cl(v=1) = 4 (válida!)</small></p>
+            
+            <h2>🔗 Ligação Metálica (2+ Metais)</h2>
+            <p>20 pontos fixos</p>
+            
+            <h2>🔬 Ligação Covalente (2+ Ametais)</h2>
+            <p>20 + (nº cartas × 10) pontos</p>
+            
+            <h2>⭐ Bônus</h2>
+            <ul>
+                <li><strong>Mão Limpa:</strong> Jogue todas 5 cartas = ×1.5 pontos</li>
+                <li><strong>Cartas Especiais:</strong> Break Bond, Double Points, Catalyst</li>
+                <li><strong>Gases Nobres:</strong> Bloqueiam ligações</li>
+            </ul>
+            
+            <h2>🎮 Como Jogar</h2>
+            <ol>
+                <li>❓ Clique para regras</li>
+                <li>🚀 "Começar Jogo" na tela inicial</li>
+                <li>1 carta = Comprar/Nova carta</li>
+                <li>2+ cartas = Confirmar ligação</li>
+                <li>Deck acaba = FIM! Vencedor anunciado</li>
+            </ol>
+            
+            <button onclick="toggleHelp()">✨ Entendi! Jogar</button>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--cosmic-glow); font-size: 0.9em; color: var(--neon-yellow); opacity: 0.8;">
+                👨‍🔬 Criado por: ANGÉLICA VAILATI, KANHAKCIN BACAME, MATHEUS MENOZZO e VITOR MONTEMEZO<br>
+                👩‍🏫 Professora: Mara Cristina Picoli Zenevicz
+            </div>
+        </div>
+    </div>
+
+    <div id="overlay">
+        <h1 id="overlay-msg">Baralho Cósmico Atômico</h1>
+        <button onclick="iniciarTurno()">🚀 Começar Jogo do Jogador 1</button>
+    </div>
+    <div id="win-overlay" style="display: none;">
+        <h1>🏆 FIM DE JOGO! 🏆</h1>
+        <div id="win-message"></div>
+        <p>Baralho esgotado! Nenhum jogador pode repor cartas.</p>
+        <button onclick="reiniciarJogo()" style="margin-top: 30px; padding: 20px 40px; font-size: 1.3em;">🔄 Jogar Novamente</button>
+    </div>
+
+    <script>
+        const elementos = [
+            { id: 1, s: 'Na', n: 'Sódio', t: 'metal', v: 1 },
+            { id: 2, s: 'Mg', n: 'Magnésio', t: 'metal', v: 2 },
+            { id: 3, s: 'Al', n: 'Alumínio', t: 'metal', v: 3 },
+            { id: 4, s: 'Cl', n: 'Cloro', t: 'ametal', v: 1 },
+            { id: 5, s: 'O', n: 'Oxigênio', t: 'ametal', v: 2 },
+            { id: 6, s: 'N', n: 'Nitrogênio', t: 'ametal', v: 3 },
+            { id: 7, s: 'C', n: 'Carbono', t: 'ametal', v: 4 },
+            { id: 8, s: 'H', n: 'Hidrogênio', t: 'ametal', v: 1 },
+            { id: 9, s: 'Fe', n: 'Ferro', t: 'metal', v: 2 },
+            { id: 10, s: 'He', n: 'Hélio', t: 'nobre', v: 0 },
+            { id: 11, s: 'Cu', n: 'Cobre', t: 'metal', v: 1 },
+            { id: 12, s: 'F', n: 'Flúor', t: 'ametal', v: 1 },
+            { id: 13, s: 'S', n: 'Enxofre', t: 'ametal', v: 2 },
+            { id: 14, s: 'K', n: 'Potássio', t: 'metal', v: 1 },
+            { id: 15, s: 'Ca', n: 'Cálcio', t: 'metal', v: 2 }
+        ];
+
+        let baralho = [];
+        let jogadores = [{ nome: "Jogador 1", pontos: 0, mao: [] }, { nome: "Jogador 2", pontos: 0, mao: [] }, { nome: "Jogador 3", pontos: 0, mao: [] }, { nome: "Jogador 4", pontos: 0, mao: [] }];
+        let turnoAtivo = 0;
+        let selecionadas = [];
+        let jogoEmAndamento = true;
+
+        function shuffle(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } }
+
+        function initGame() {
+            baralho = [];
+            for(let i = 0; i < 36; i++) {
+              if (i < 24) {
+                baralho.push({...elementos[Math.floor(Math.random() * elementos.length)], instId: i, type: 'element'});
+              } else if (i < 30) {
+                const specials = ['Break Bond', 'Double Points', 'Catalyst'];
+                baralho.push({name: specials[(i-24)%3], type: 'special', instId: i});
+              } else {
+                baralho.push({name: 'Bonus +50%', type: 'bonus', instId: i});
+              }
+            }
+            shuffle(baralho);
+            jogadores.forEach(j => { j.pontos = 0; j.mao = []; for(let k = 0; k < 5; k++) if (baralho.length > 0) j.mao.push(baralho.pop()); });
+            turnoAtivo = 0;
+            selecionadas = [];
+            jogoEmAndamento = true;
+            atualizarPlacar();
+            document.getElementById('win-overlay').style.display = 'none';
+            document.getElementById('overlay-msg').innerText = 'Vez de: Jogador 1';
+            document.querySelector('#overlay button').innerText = '🚀 Começar Jogo';
+            document.getElementById('overlay').style.display = 'flex';
+        }
+
+        function checkGameEnd() {
+            if (baralho.length === 0) {
+                finalizarJogo();
+                return true;
+            }
+            return false;
+        }
+
+        function finalizarJogo() {
+            jogoEmAndamento = false;
+            const vencedor = jogadores.reduce((max, j) => j.pontos > max.pontos ? j : max);
+            document.getElementById('win-message').innerText = vencedor.nome + ' VENCEU! ' + vencedor.pontos + ' Pontos Cósmicos! 🌟';
+            document.getElementById('win-overlay').style.display = 'flex';
+        }
+
+        function reiniciarJogo() { initGame(); }
+
+        function iniciarTurno() {
+            document.getElementById('overlay').style.display = 'none';
+            renderMao();
+            atualizarBotoes();
+        }
+
+        function proximoTurno() {
+            if (!jogoEmAndamento) return;
+            turnoAtivo = (turnoAtivo + 1) % 4;
+            selecionadas = [];
+            document.getElementById('mesa').innerHTML = '<p id="mesa-instrucao">🌀 Selecione cartas para formar ligações químicas interestelares!</p>';
+            if (checkGameEnd()) return;
+            document.getElementById('overlay-msg').innerText = 'Vez de: ' + jogadores[turnoAtivo].nome;
+            document.querySelector('#overlay button').innerText = 'Iniciar Turno';
+            document.getElementById('overlay').style.display = 'flex';
+            atualizarPlacar();
+        }
+
+        function renderMao() {
+            const handDiv = document.getElementById('current-hand');
+            handDiv.innerHTML = '';
+            jogadores[turnoAtivo].mao.forEach(carta => {
+                const cardEl = document.createElement('div');
+                cardEl.className = `card ${carta.t || 'special'} ${selecionadas.includes(carta.instId) ? ' selected' : ''}`;
+                cardEl.onclick = () => toggleCarta(carta);
+                if (carta.type === 'special' || carta.type === 'bonus') {
+                    cardEl.innerHTML = `
+                        <div class="card-valence">${carta.name}</div>
+                        <svg class="card-atom" viewBox="0 0 100 100">
+                            <circle class="orbit" cx="50" cy="50" r="35" pathLength="1" stroke-dasharray="0.2 0.8"/>
+                            <circle class="orbit" cx="50" cy="50" r="25" pathLength="1" stroke-dasharray="0.3 0.7" stroke-dashoffset="0.5"/>
+                            <circle class="nucleus" cx="50" cy="50" r="8"/>
+                        </svg>
+                        <div class="card-symbol">★</div>
+                        <div class="card-name">${carta.type.toUpperCase()}</div>
+                    `;
+                } else {
+                    cardEl.innerHTML = `
+                        <div class="card-valence">Valência: ${carta.v}</div>
+                        <svg class="card-atom" viewBox="0 0 100 100">
+                            <circle class="orbit" cx="50" cy="50" r="35" pathLength="1" stroke-dasharray="0.2 0.8"/>
+                            <circle class="orbit" cx="50" cy="50" r="25" pathLength="1" stroke-dasharray="0.3 0.7" stroke-dashoffset="0.5"/>
+                            <circle class="nucleus" cx="50" cy="50" r="8"/>
+                        </svg>
+                        <div class="card-symbol">${carta.s}</div>
+                        <div class="card-name">${carta.n}</div>
+                    `;
+                }
+                handDiv.appendChild(cardEl);
+            });
+            atualizarBotoes();
+        }
+
+        function toggleHelp() {
+            const modal = document.getElementById('help-modal');
+            if (modal.style.display === 'flex') {
+                modal.style.display = 'none';
+            } else {
+                modal.style.display = 'flex';
+            }
+        }
+
+        function toggleCarta(carta) {
+            if (!jogoEmAndamento) return;
+            const index = selecionadas.indexOf(carta.instId);
+            if (index > -1) selecionadas.splice(index, 1); else selecionadas.push(carta.instId);
+            renderMao();
+        }
+
+        function atualizarBotoes() {
+            const numSel = selecionadas.length;
+            document.getElementById('btn-confirmar').disabled = numSel < 2;
+            document.getElementById('btn-comprar').disabled = numSel !== 1;
+            const msg = numSel === 0 ? '🌀 Selecione cartas para ligar ou trocar!' : numSel === 1 ? '📊 1 carta. Clique Comprar para trocar!' : '✅ ' + numSel + ' cartas. Clique Confirmar!';
+            document.getElementById('msg-box').innerText = msg;
+        }
+
+        function comprarCarta() {
+            if (!jogoEmAndamento || selecionadas.length !== 1 || baralho.length === 0) { 
+                document.getElementById('msg-box').innerText = baralho.length === 0 ? '⚠️ Deck vazio!' : '❌ Selecione 1 carta!'; 
+                return; 
+            }
+            const idx = jogadores[turnoAtivo].mao.findIndex(c => c.instId === selecionadas[0]);
+            jogadores[turnoAtivo].mao.splice(idx, 1);
+            jogadores[turnoAtivo].mao.push(baralho.pop());
+            document.getElementById('msg-box').innerText = '✅ Carta trocada!';
+            setTimeout(proximoTurno, 1500);
+        }
+
+        function confirmarJogada() {
+            if (!jogoEmAndamento || selecionadas.length < 2) { 
+                document.getElementById('msg-box').innerText = '❌ 2+ cartas!'; 
+                return; 
+            }
+            const cartasSel = jogadores[turnoAtivo].mao.filter(c => selecionadas.includes(c.instId));
+            const resultado = validarLigacao(cartasSel);
+            if (resultado.valida) {
+                let pts = resultado.pontos;
+                if (cartasSel.length === 5) { pts *= 1.5; document.getElementById('msg-box').innerText = '🌟 Mão Limpa! +50%'; } else document.getElementById('msg-box').innerText = resultado.tipo + ' válida! +' + pts + ' pts';
+                jogadores[turnoAtivo].pontos += pts;
+                jogadores[turnoAtivo].mao = jogadores[turnoAtivo].mao.filter(c => !selecionadas.includes(c.instId));
+                while (jogadores[turnoAtivo].mao.length < 5 && baralho.length > 0) jogadores[turnoAtivo].mao.push(baralho.pop());
+                atualizarPlacar();
+                setTimeout(() => { if (checkGameEnd()) return; proximoTurno(); }, 2000);
+            } else document.getElementById('msg-box').innerText = '❌ Ligação inválida: ' + resultado.tipo;
+        }
+
+        function validarLigacao(cartas) {
+            const hasSpecial = cartas.some(c => c.type && c.type !== 'element');
+            if (hasSpecial) return { valida: false, tipo: 'Cartas especiais pendentes' };
+            
+            const metais = cartas.filter(c => c.t === 'metal');
+            const ametais = cartas.filter(c => c.t === 'ametal');
+            const totalValence = cartas.reduce((sum, c) => sum + c.v, 0);
+            
+            if (metais.length > 0 && ametais.length > 0) {
+                if (totalValence % 2 === 0) return { valida: true, pontos: 25 + ametais.length * 5, tipo: 'Iônica ✓ Valência: ' + totalValence };
+            } else if (metais.length > 1) {
+                return { valida: true, pontos: 20, tipo: 'Metálica ✓' };
+            } else if (ametais.length >= 2) {
+                return { valida: true, pontos: 20 + ametais.length * 10, tipo: 'Covalente ✓ Valência: ' + totalValence };
+            }
+            
+            return { valida: false, tipo: 'Valência inválida (total ' + totalValence + ')' };
+        }
+
+        function atualizarPlacar() {
+            jogadores.forEach((j, i) => {
+                const el = document.getElementById('p' + i + '-score');
+                el.innerText = j.nome + ': ' + j.pontos;
+                el.classList.toggle('active', i === turnoAtivo);
+            });
+        }
+
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
+
