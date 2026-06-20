@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baralho Cósmico Atômico - Jogo Educativo</title>
+    <title>⚛️ Baralho Cósmico Atômico - Versão Avançada</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -14,10 +14,15 @@
             --neon-cyan: #00f5ff;
             --neon-magenta: #ff00ff;
             --neon-yellow: #ffff00;
+            --neon-green: #00ff00;
+            --neon-red: #ff0066;
+            --neon-orange: #ff6600;
             --cosmic-glow: rgba(0, 245, 255, 0.6);
             --card-metal: linear-gradient(145deg, #4e89ae, #2d5a7a);
             --card-ametal: linear-gradient(145deg, #43a047, #2d5a3a);
             --card-nobre: linear-gradient(145deg, #757575, #4a4a4a);
+            --card-transition: linear-gradient(145deg, #aa00ff, #6600ff);
+            --card-power: linear-gradient(145deg, #ff4500, #ff8c00);
             --text-main: #ffffff;
         }
 
@@ -80,9 +85,15 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         #overlay h1, #win-overlay h1 { font-size: 3em; margin-bottom: 20px; background: linear-gradient(45deg, var(--neon-cyan), var(--neon-magenta), var(--neon-yellow)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: rainbow 2s linear infinite; }
         @keyframes rainbow { 0% { background-position: 0%; } 100% { background-position: 200%; } }
-        #win-overlay { text-align: center; font-size: 1.5em; }
+        #win-overlay { text-align: center; font-size: 1.5em; overflow: hidden; }
         #win-message { font-size: 2.5em; margin: 20px 0; color: var(--neon-yellow); text-shadow: 0 0 30px var(--neon-yellow); animation: celebrate 1s ease-in-out infinite; }
+        #final-ranking { display: grid; gap: 12px; margin-top: 20px; text-align: left; max-width: 420px; width: 90%; }
+        .final-score { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); }
+        .final-score.winner { background: rgba(255,215,0,0.18); border-color: rgba(255,215,0,0.4); }
+        #confetti-container { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 101; }
+        .confetti-piece { position: absolute; width: 10px; height: 10px; opacity: 0.9; border-radius: 50%; animation: confetti-fall 3s ease-out forwards; }
         @keyframes celebrate { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        @keyframes confetti-fall { 0% { opacity: 1; transform: translate3d(0,0,0) rotate(0deg); } 100% { opacity: 0; transform: translate3d(0,120vh,0) rotate(720deg); } }
 
         #help-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         #help-modal .modal-content { background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); border: 3px solid var(--neon-cyan); border-radius: 25px; padding: 40px; max-width: 700px; max-height: 80vh; overflow-y: auto; color: var(--text-main); font-family: 'Orbitron'; text-align: center; box-shadow: 0 0 50px var(--cosmic-glow); }
@@ -90,7 +101,39 @@
         #help-modal ul, #help-modal ol { text-align: left; max-width: 500px; margin: 0 auto; font-size: 1.1em; line-height: 1.8; }
         #help-modal button { margin-top: 30px; padding: 18px 36px; background: linear-gradient(145deg, var(--neon-magenta), var(--neon-cyan)); border: none; border-radius: 25px; color: white; font-weight: bold; font-size: 1.2em; cursor: pointer; box-shadow: 0 8px 25px rgba(255,0,255,0.4); transition: all 0.3s; }
 
-        @media (max-width: 768px) { .card { width: 110px; height: 160px; } .hand { gap: 10px; padding: 15px; } #mesa { width: 95%; padding: 15px; } }
+        /* NOVOS ESTILOS AVANÇADOS */
+        .card.transition { background: var(--card-transition); } .card.power { background: var(--card-power); }
+        
+        #combo-meter { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,0,0,0.3); border: 2px solid var(--neon-red); border-radius: 20px; padding: 10px 20px; font-size: 1.3em; font-weight: bold; z-index: 35; color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red); animation: comboPulse 0.5s infinite alternate; }
+        @keyframes comboPulse { 0% { box-shadow: 0 0 10px var(--neon-red); } 100% { box-shadow: 0 0 30px var(--neon-red), inset 0 0 20px var(--neon-red); } }
+        
+        #multiplier-display { position: fixed; bottom: 30px; right: 30px; background: rgba(255,215,0,0.3); border: 2px solid var(--neon-yellow); border-radius: 15px; padding: 15px; font-size: 1.2em; z-index: 35; color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-yellow); }
+        
+        .particle { position: fixed; pointer-events: none; font-size: 2em; font-weight: bold; animation: particleFloat 2s ease-out forwards; z-index: 30; }
+        @keyframes particleFloat { 0% { opacity: 1; transform: translateY(0) translateX(0) scale(1); } 100% { opacity: 0; transform: translateY(-100px) translateX(50px) scale(0); } }
+        
+        .combo-visual { position: fixed; pointer-events: none; font-size: 3em; font-weight: 900; animation: comboExplode 1s ease-out forwards; z-index: 30; text-shadow: 0 0 20px currentColor; }
+        @keyframes comboExplode { 0% { opacity: 1; transform: scale(0.5) rotate(0deg); } 50% { opacity: 1; } 100% { opacity: 0; transform: scale(2) rotate(360deg); } }
+        
+        .notification { position: fixed; top: 150px; left: 50%; transform: translateX(-50%); background: rgba(0,255,0,0.2); border: 2px solid var(--neon-green); border-radius: 15px; padding: 15px 25px; font-size: 1.2em; z-index: 35; animation: slideDown 0.5s ease-out, slideUp 0.5s ease-in 2.5s forwards; color: var(--neon-green); }
+        @keyframes slideDown { from { transform: translateX(-50%) translateY(-50px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+        @keyframes slideUp { from { transform: translateX(-50%) translateY(0); opacity: 1; } to { transform: translateX(-50%) translateY(-50px); opacity: 0; } }
+        
+        .card.power::after { content: '⚡'; position: absolute; top: 5px; right: 5px; font-size: 1.5em; animation: powerPulse 1s infinite; }
+        @keyframes powerPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.3); } }
+        
+        #card-info-tooltip { position: fixed; background: rgba(0,0,0,0.95); border: 2px solid var(--neon-cyan); border-radius: 15px; padding: 15px; font-size: 0.9em; z-index: 40; max-width: 250px; display: none; color: var(--text-main); }
+        
+        .difficulty-select { position: fixed; bottom: 30px; left: 30px; background: rgba(100,149,237,0.3); border: 2px solid var(--neon-cyan); border-radius: 15px; padding: 15px; z-index: 35; }
+        .difficulty-select button { padding: 8px 15px; margin: 5px; font-size: 0.9em; }
+        
+        @media (max-width: 768px) { 
+            .card { width: 110px; height: 160px; } 
+            .hand { gap: 10px; padding: 15px; } 
+            #mesa { width: 95%; padding: 15px; }
+            #combo-meter { font-size: 1em; padding: 8px 15px; }
+            #multiplier-display { bottom: 15px; right: 15px; font-size: 1em; }
+        }
     </style>
 </head>
 <body>
@@ -99,9 +142,11 @@
         <div id="p1-score" class="player-score">Jogador 2: 0</div>
         <div id="p2-score" class="player-score">Jogador 3: 0</div>
         <div id="p3-score" class="player-score">Jogador 4: 0</div>
+        <div id="combo-meter" style="display:none;">🔥 COMBO x0</div>
+        <div id="multiplier-display" style="display:none;">📊 x1.0</div>
     </div>
     <div id="game-board">
-        <div id="msg-box">🚀 Bem-vindo ao Baralho Cósmico Atômico! 🌌</div>
+        <div id="msg-box">🚀 Bem-vindo ao Baralho Cósmico Atômico Avançado! 🌌</div>
         <div id="mesa">
             <p id="mesa-instrucao">🌀 Selecione cartas para formar ligações químicas interestelares!</p>
         </div>
@@ -110,45 +155,63 @@
             <button id="btn-help" onclick="toggleHelp()" style="background: var(--neon-yellow); padding: 12px 20px; font-size: 1.5em; margin: 0 10px;">❓</button>
             <button id="btn-confirmar" onclick="confirmarJogada()" disabled style="margin: 0 5px;">⚡ Confirmar</button>
             <button id="btn-comprar" onclick="comprarCarta()" disabled style="margin: 0 5px;">🔄 Comprar</button>
+            <button id="btn-pular" onclick="pularTurno()" disabled style="margin: 0 5px; background: var(--neon-orange);">⏭️ Passar</button>
+            <button id="btn-desselecionar" onclick="desselecinarTodas()" style="margin: 0 5px; background: var(--neon-magenta);">🔄 Limpar</button>
         </div>
     </div>
+    <div id="card-info-tooltip"></div>
 
     <!-- Help Modal -->
     <div id="help-modal" style="display: none;">
         <div class="modal-content">
-            <h1>🧪 Regras do Jogo</h1>
+            <h1>🧪 Regras do Jogo Avançado</h1>
             
             <h2>🎯 Objetivo</h2>
-            <p>Forme ligações químicas válidas para ganhar pontos! O jogador com mais pontos quando o baralho acabar vence!</p>
+            <p>Forme ligações químicas válidas e acumule COMBOS para ganhar pontos! Vencedor: maior pontuação ao final!</p>
+            
+            <h2>⚡ SISTEMA DE COMBO & MULTIPLICADOR</h2>
+            <p>Cada ligação válida aumenta seu combo! Combo x 5 = 2x de pontos!<br>
+            Combos mantêm-se enquanto você acertar ligações consecutivas!</p>
             
             <h2>⚗️ Ligação Iônica (Metal + Ametal)</h2>
-            <p>Soma das valências deve ser par • 25 + (nº ametais × 5) pontos<br><small>Ex: Ca(v=2) + 2Cl(v=1) = 4 (válida!)</small></p>
+            <p>Valência total DEVE ser par • Base: 25 + (nº ametais × 5) • Com combo: ×multiplicador</p>
             
             <h2>🔗 Ligação Metálica (2+ Metais)</h2>
-            <p>20 pontos fixos</p>
+            <p>20 pontos fixos • Multiplicador aplicado</p>
             
             <h2>🔬 Ligação Covalente (2+ Ametais)</h2>
-            <p>20 + (nº cartas × 10) pontos</p>
+            <p>20 + (nº cartas × 10) • Com multiplicador</p>
             
-            <h2>⭐ Bônus</h2>
+            <h2>🌐 Ligação de Coordenação (Metal + 3+ Ametais)</h2>
+            <p>50 pontos base • Alto risco, alta recompensa!</p>
+            
+            <h2>⭐ Cartas Especiais - NOVO!</h2>
             <ul>
-                <li><strong>Mão Limpa:</strong> Jogue todas 5 cartas = ×1.5 pontos</li>
-                <li><strong>Cartas Especiais:</strong> Break Bond, Double Points, Catalyst</li>
-                <li><strong>Gases Nobres:</strong> Bloqueiam ligações</li>
+                <li><strong>⚡ Amplificador:</strong> +50% de pontos nesta jogada</li>
+                <li><strong>🔀 Catalisador:</strong> Receba carta extra sem custo</li>
+                <li><strong>💥 Explosão:</strong> Multiplica combo por 2x</li>
+                <li><strong>🛡️ Escudo:</strong> Próxima ligação inválida não quebra combo</li>
+            </ul>
+            
+            <h2>🎖️ Bônus Especiais</h2>
+            <ul>
+                <li><strong>Mão Limpa:</strong> 5 cartas = ×1.5 pontos finais</li>
+                <li><strong>Perfeição:</strong> 3+ ligações válidas seguidas = 100 pts bônus</li>
             </ul>
             
             <h2>🎮 Como Jogar</h2>
             <ol>
-                <li>❓ Clique para regras</li>
-                <li>🚀 "Começar Jogo" na tela inicial</li>
-                <li>1 carta = Comprar/Nova carta</li>
-                <li>2+ cartas = Confirmar ligação</li>
-                <li>Deck acaba = FIM! Vencedor anunciado</li>
+                <li>Clique nas cartas para selecionar</li>
+                <li>2+ cartas → Confirmar = Ligação</li>
+                <li>1 carta → Comprar = Trocar carta</li>
+                <li>Acumule combos para multiplicar pontos!</li>
+                <li>Baralho vazio = FIM!</li>
             </ol>
             
             <button onclick="toggleHelp()">✨ Entendi! Jogar</button>
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--cosmic-glow); font-size: 0.9em; color: var(--neon-yellow); opacity: 0.8;">
-                👨‍🔬 Criado por: ANGÉLICA VAILATI, KANHAKCIN BACAME, MATHEUS MENOZZO e VITOR MONTEMEZO<br>
+                🚀 Baralho Cósmico Atômico - VERSÃO AVANÇADA 2.0 🚀<br>
+                👨‍🔬 Criado por: ANGÉLICA, KANHAKCIN, MATHEUS e VITOR<br>
                 👩‍🏫 Professora: Mara Cristina Picoli Zenevicz
             </div>
         </div>
@@ -159,56 +222,166 @@
         <button onclick="iniciarTurno()">🚀 Começar Jogo do Jogador 1</button>
     </div>
     <div id="win-overlay" style="display: none;">
+        <div id="confetti-container"></div>
         <h1>🏆 FIM DE JOGO! 🏆</h1>
         <div id="win-message"></div>
-        <p>Baralho esgotado! Nenhum jogador pode repor cartas.</p>
+        <p id="win-subtitle">Baralho esgotado! Veja o placar final e escolha seu próximo desafio.</p>
+        <div id="final-ranking"></div>
         <button onclick="reiniciarJogo()" style="margin-top: 30px; padding: 20px 40px; font-size: 1.3em;">🔄 Jogar Novamente</button>
     </div>
 
     <script>
+        // ========================== ELEMENTOS EXPANDIDOS ==========================
         const elementos = [
+            // Metais - Grupos 1-3 e Transição
             { id: 1, s: 'Na', n: 'Sódio', t: 'metal', v: 1 },
             { id: 2, s: 'Mg', n: 'Magnésio', t: 'metal', v: 2 },
             { id: 3, s: 'Al', n: 'Alumínio', t: 'metal', v: 3 },
+            { id: 9, s: 'Fe', n: 'Ferro', t: 'metal', v: 2 },
+            { id: 11, s: 'Cu', n: 'Cobre', t: 'metal', v: 1 },
+            { id: 14, s: 'K', n: 'Potássio', t: 'metal', v: 1 },
+            { id: 15, s: 'Ca', n: 'Cálcio', t: 'metal', v: 2 },
+            { id: 20, s: 'Zn', n: 'Zinco', t: 'metal', v: 2 },
+            { id: 21, s: 'Ag', n: 'Prata', t: 'metal', v: 1 },
+            { id: 22, s: 'Au', n: 'Ouro', t: 'metal', v: 1 },
+            { id: 23, s: 'Ba', n: 'Bário', t: 'metal', v: 2 },
+            
+            // Ametais
             { id: 4, s: 'Cl', n: 'Cloro', t: 'ametal', v: 1 },
             { id: 5, s: 'O', n: 'Oxigênio', t: 'ametal', v: 2 },
             { id: 6, s: 'N', n: 'Nitrogênio', t: 'ametal', v: 3 },
             { id: 7, s: 'C', n: 'Carbono', t: 'ametal', v: 4 },
             { id: 8, s: 'H', n: 'Hidrogênio', t: 'ametal', v: 1 },
-            { id: 9, s: 'Fe', n: 'Ferro', t: 'metal', v: 2 },
-            { id: 10, s: 'He', n: 'Hélio', t: 'nobre', v: 0 },
-            { id: 11, s: 'Cu', n: 'Cobre', t: 'metal', v: 1 },
             { id: 12, s: 'F', n: 'Flúor', t: 'ametal', v: 1 },
             { id: 13, s: 'S', n: 'Enxofre', t: 'ametal', v: 2 },
-            { id: 14, s: 'K', n: 'Potássio', t: 'metal', v: 1 },
-            { id: 15, s: 'Ca', n: 'Cálcio', t: 'metal', v: 2 }
+            { id: 19, s: 'Br', n: 'Bromo', t: 'ametal', v: 1 },
+            { id: 24, s: 'I', n: 'Iodo', t: 'ametal', v: 1 },
+            { id: 25, s: 'P', n: 'Fósforo', t: 'ametal', v: 3 },
+            
+            // Nobres
+            { id: 10, s: 'He', n: 'Hélio', t: 'nobre', v: 0 },
+            { id: 18, s: 'Ar', n: 'Argônio', t: 'nobre', v: 0 },
+            { id: 26, s: 'Ne', n: 'Neônio', t: 'nobre', v: 0 }
         ];
 
+        // ========================== CARTAS ESPECIAIS ==========================
+        const cartasEspeciais = [
+            { nome: '⚡ Amplificador', tipo: 'amplificador', descr: '+50% pontos nesta jogada', efeito: 'mult' },
+            { nome: '🔀 Catalisador', tipo: 'catalisador', descr: 'Ganha carta extra', efeito: 'extra' },
+            { nome: '💥 Explosão', tipo: 'explosao', descr: 'Combo x2', efeito: 'combo' },
+            { nome: '🛡️ Escudo', tipo: 'escudo', descr: 'Próxima inválida não quebra combo', efeito: 'shield' }
+        ];
+
+        // ========================== VARIÁVEIS GLOBAIS ==========================
         let baralho = [];
-        let jogadores = [{ nome: "Jogador 1", pontos: 0, mao: [] }, { nome: "Jogador 2", pontos: 0, mao: [] }, { nome: "Jogador 3", pontos: 0, mao: [] }, { nome: "Jogador 4", pontos: 0, mao: [] }];
+        let jogadores = [
+            { nome: "Jogador 1", pontos: 0, mao: [], combo: 0, maxCombo: 0, shield: false },
+            { nome: "Jogador 2", pontos: 0, mao: [], combo: 0, maxCombo: 0, shield: false },
+            { nome: "Jogador 3", pontos: 0, mao: [], combo: 0, maxCombo: 0, shield: false },
+            { nome: "Jogador 4", pontos: 0, mao: [], combo: 0, maxCombo: 0, shield: false }
+        ];
         let turnoAtivo = 0;
         let selecionadas = [];
         let jogoEmAndamento = true;
+        let comboGlobal = 0;
+        let multiplicador = 1.0;
+        let perfeitoCount = 0;
+        let dificuldade = 'normal';
 
-        function shuffle(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } }
+        // ========================== FUNÇÕES UTILITÁRIAS ==========================
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
 
+        function criarParticula(texto, x, y, cor = '#00ff00') {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.textContent = texto;
+            p.style.left = x + 'px';
+            p.style.top = y + 'px';
+            p.style.color = cor;
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 2000);
+        }
+
+        function criarComboVisual(texto, x, y) {
+            const c = document.createElement('div');
+            c.className = 'combo-visual';
+            c.textContent = texto;
+            c.style.left = x + 'px';
+            c.style.top = y + 'px';
+            c.style.color = '#ff00ff';
+            document.body.appendChild(c);
+            setTimeout(() => c.remove(), 1000);
+        }
+
+        function mostrarNotificacao(texto, tipo = 'info') {
+            const n = document.createElement('div');
+            n.className = 'notification';
+            n.textContent = texto;
+            n.style.borderColor = tipo === 'sucesso' ? '#00ff00' : tipo === 'erro' ? '#ff0000' : '#00ffff';
+            n.style.color = tipo === 'sucesso' ? '#00ff00' : tipo === 'erro' ? '#ff0000' : '#00ffff';
+            document.body.appendChild(n);
+            setTimeout(() => n.remove(), 3000);
+        }
+
+        function atualizarMultiplicador() {
+            const comboAtual = jogadores[turnoAtivo].combo;
+            multiplicador = 1.0 + (comboAtual / 10);
+            document.getElementById('multiplier-display').innerText = '📊 x' + multiplicador.toFixed(2);
+            if (comboAtual > 0) {
+                document.getElementById('multiplier-display').style.display = 'block';
+            }
+        }
+
+        // ========================== INICIALIZAÇÃO ==========================
         function initGame() {
             baralho = [];
-            for(let i = 0; i < 36; i++) {
-              if (i < 24) {
-                baralho.push({...elementos[Math.floor(Math.random() * elementos.length)], instId: i, type: 'element'});
-              } else if (i < 30) {
-                const specials = ['Break Bond', 'Double Points', 'Catalyst'];
-                baralho.push({name: specials[(i-24)%3], type: 'special', instId: i});
-              } else {
-                baralho.push({name: 'Bonus +50%', type: 'bonus', instId: i});
-              }
+            let cartasTotal = 0;
+
+            // Adicionar elementos
+            for(let i = 0; i < 50; i++) {
+                const elem = elementos[Math.floor(Math.random() * elementos.length)];
+                baralho.push({...elem, instId: cartasTotal++, type: 'element', isSpecial: false});
             }
+
+            // Adicionar cartas especiais (aumentadas)
+            cartasEspeciais.forEach((esp, idx) => {
+                for(let j = 0; j < 2; j++) {
+                    baralho.push({
+                        nome: esp.nome,
+                        tipo: esp.tipo,
+                        descr: esp.descr,
+                        efeito: esp.efeito,
+                        type: 'special',
+                        isSpecial: true,
+                        instId: cartasTotal++
+                    });
+                }
+            });
+
             shuffle(baralho);
-            jogadores.forEach(j => { j.pontos = 0; j.mao = []; for(let k = 0; k < 5; k++) if (baralho.length > 0) j.mao.push(baralho.pop()); });
+            jogadores.forEach(j => {
+                j.pontos = 0;
+                j.mao = [];
+                j.combo = 0;
+                j.maxCombo = 0;
+                j.shield = false;
+                for(let k = 0; k < 5 && baralho.length > 0; k++) {
+                    j.mao.push(baralho.pop());
+                }
+            });
+
             turnoAtivo = 0;
             selecionadas = [];
             jogoEmAndamento = true;
+            comboGlobal = 0;
+            multiplicador = 1.0;
+            perfeitoCount = 0;
+            // última rodada não mais usada — jogo encerra automaticamente ao esgotar o deck
             atualizarPlacar();
             document.getElementById('win-overlay').style.display = 'none';
             document.getElementById('overlay-msg').innerText = 'Vez de: Jogador 1';
@@ -216,7 +389,84 @@
             document.getElementById('overlay').style.display = 'flex';
         }
 
+        // ========================== VALIDAÇÃO E LÓGICA ==========================
+        function processarCartasEspeciais(cartas) {
+            let amplificadorAtivo = false;
+            let catalisadorAtivo = false;
+            let explosaoAtiva = false;
+            let escudoAtivo = false;
+
+            cartas.forEach(c => {
+                if(c.isSpecial) {
+                    if(c.efeito === 'mult') amplificadorAtivo = true;
+                    if(c.efeito === 'extra') catalisadorAtivo = true;
+                    if(c.efeito === 'combo') explosaoAtiva = true;
+                    if(c.efeito === 'shield') escudoAtivo = true;
+                }
+            });
+
+            return { amplificadorAtivo, catalisadorAtivo, explosaoAtiva, escudoAtivo };
+        }
+
+        function validarLigacao(cartas) {
+            const especiais = processarCartasEspeciais(cartas);
+            const naoEspeciais = cartas.filter(c => !c.isSpecial);
+
+            if (naoEspeciais.length < 2 && cartas.length < 2) {
+                return { valida: false, tipo: '❌ Mínimo 2 cartas necessário' };
+            }
+
+            const metais = naoEspeciais.filter(c => c.t === 'metal');
+            const ametais = naoEspeciais.filter(c => c.t === 'ametal');
+            const nobres = naoEspeciais.filter(c => c.t === 'nobre');
+            const totalValence = naoEspeciais.reduce((sum, c) => sum + c.v, 0);
+
+            if (nobres.length > 0) {
+                return { valida: false, tipo: '⛔ Gases nobres não formam ligações!' };
+            }
+
+            let pontos = 0;
+            let tipoLigacao = '';
+
+            // Ligação de Coordenação (Metal + 3+ Ametais) - NOVO!
+            if (metais.length === 1 && ametais.length >= 3) {
+                pontos = 50;
+                tipoLigacao = '🌐 Coordenação ✓ (Alto Risco!)';
+            }
+            // Ligação Iônica
+            else if (metais.length > 0 && ametais.length > 0) {
+                if (totalValence % 2 === 0) {
+                    pontos = 25 + ametais.length * 5;
+                    tipoLigacao = '⚗️ Iônica ✓ (Val: ' + totalValence + ')';
+                } else {
+                    return { valida: false, tipo: '❌ Valência inválida (total ' + totalValence + ')' };
+                }
+            }
+            // Ligação Metálica
+            else if (metais.length >= 2) {
+                pontos = 20;
+                tipoLigacao = '🔗 Metálica ✓';
+            }
+            // Ligação Covalente
+            else if (ametais.length >= 2) {
+                pontos = 20 + ametais.length * 10;
+                tipoLigacao = '🔬 Covalente ✓ (Val: ' + totalValence + ')';
+            } else {
+                return { valida: false, tipo: '❌ Combinação inválida' };
+            }
+
+            // Aplicar efeitos especiais
+            if (especiais.amplificadorAtivo) pontos *= 1.5;
+            if (especiais.explosaoAtiva) {
+                jogadores[turnoAtivo].combo *= 2;
+                criarComboVisual('💥 x2 COMBO!', window.innerWidth/2, window.innerHeight/2);
+            }
+
+            return { valida: true, pontos: Math.floor(pontos), tipo: tipoLigacao };
+        }
+
         function checkGameEnd() {
+            // Encerrar imediatamente quando o deck acabar
             if (baralho.length === 0) {
                 finalizarJogo();
                 return true;
@@ -226,9 +476,49 @@
 
         function finalizarJogo() {
             jogoEmAndamento = false;
-            const vencedor = jogadores.reduce((max, j) => j.pontos > max.pontos ? j : max);
-            document.getElementById('win-message').innerText = vencedor.nome + ' VENCEU! ' + vencedor.pontos + ' Pontos Cósmicos! 🌟';
+            const ranking = [...jogadores].sort((a, b) => b.pontos - a.pontos);
+            const vencedor = ranking[0];
+            const empate = ranking.length > 1 && ranking[0].pontos === ranking[1].pontos;
+            const titulo = empate ? '🤝 EMPATE ÉPICO!' : vencedor.nome + ' VENCEU!';
+            document.getElementById('win-message').innerText = titulo + ' ' + vencedor.pontos + ' PONTOS CÓSMICOS! 🌟✨';
+            renderResultadoFinal(ranking);
             document.getElementById('win-overlay').style.display = 'flex';
+            playConfetti();
+        }
+
+        function renderResultadoFinal(ranking) {
+            const rankingEl = document.getElementById('final-ranking');
+            rankingEl.innerHTML = '';
+            ranking.forEach((jogador, index) => {
+                const item = document.createElement('div');
+                item.className = 'final-score' + (index === 0 ? ' winner' : '');
+                item.innerHTML = `<span>${index + 1}. ${jogador.nome}</span><span>${jogador.pontos} pts</span>`;
+                rankingEl.appendChild(item);
+            });
+
+            const melhorCombo = ranking.reduce((max, j) => Math.max(max, j.maxCombo), 0);
+            const subtitle = document.getElementById('win-subtitle');
+            subtitle.innerText = 'Maior combo: ' + melhorCombo + ' | Último turno concluído. Parabéns por chegar até aqui!';
+        }
+
+        function playConfetti() {
+            const container = document.getElementById('confetti-container');
+            container.innerHTML = '';
+            const cores = ['#ff00ff', '#00ffff', '#ffff00', '#ff6600', '#00ff00'];
+            for (let i = 0; i < 40; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.style.background = cores[Math.floor(Math.random() * cores.length)];
+                piece.style.left = Math.random() * 100 + '%';
+                piece.style.top = Math.random() * -20 + '%';
+                piece.style.width = Math.random() * 10 + 8 + 'px';
+                piece.style.height = Math.random() * 10 + 8 + 'px';
+                piece.style.animationDuration = 2.5 + Math.random() * 1 + 's';
+                piece.style.animationDelay = Math.random() * 0.5 + 's';
+                piece.style.transform = 'rotate(' + Math.random() * 360 + 'deg)';
+                container.appendChild(piece);
+            }
+            setTimeout(() => { container.innerHTML = ''; }, 3500);
         }
 
         function reiniciarJogo() { initGame(); }
@@ -237,18 +527,20 @@
             document.getElementById('overlay').style.display = 'none';
             renderMao();
             atualizarBotoes();
+            atualizarMultiplicador();
         }
 
         function proximoTurno() {
             if (!jogoEmAndamento) return;
             turnoAtivo = (turnoAtivo + 1) % 4;
             selecionadas = [];
-            document.getElementById('mesa').innerHTML = '<p id="mesa-instrucao">🌀 Selecione cartas para formar ligações químicas interestelares!</p>';
+            document.getElementById('mesa').innerHTML = '<p id="mesa-instrucao">🌀 Selecione cartas para formar ligações!</p>';
             if (checkGameEnd()) return;
             document.getElementById('overlay-msg').innerText = 'Vez de: ' + jogadores[turnoAtivo].nome;
             document.querySelector('#overlay button').innerText = 'Iniciar Turno';
             document.getElementById('overlay').style.display = 'flex';
             atualizarPlacar();
+            atualizarMultiplicador();
         }
 
         function renderMao() {
@@ -256,22 +548,34 @@
             handDiv.innerHTML = '';
             jogadores[turnoAtivo].mao.forEach(carta => {
                 const cardEl = document.createElement('div');
-                cardEl.className = `card ${carta.t || 'special'} ${selecionadas.includes(carta.instId) ? ' selected' : ''}`;
+                let classePadroes = 'card ';
+                if (carta.isSpecial) {
+                    classePadroes += 'power';
+                } else {
+                    classePadroes += carta.t;
+                }
+                if (selecionadas.includes(carta.instId)) {
+                    classePadroes += ' selected';
+                }
+                cardEl.className = classePadroes;
                 cardEl.onclick = () => toggleCarta(carta);
-                if (carta.type === 'special' || carta.type === 'bonus') {
+                cardEl.onmouseover = (e) => mostrarTooltip(carta, e);
+                cardEl.onmouseout = () => esconderTooltip();
+
+                if (carta.isSpecial) {
                     cardEl.innerHTML = `
-                        <div class="card-valence">${carta.name}</div>
+                        <div class="card-valence">${carta.nome}</div>
                         <svg class="card-atom" viewBox="0 0 100 100">
                             <circle class="orbit" cx="50" cy="50" r="35" pathLength="1" stroke-dasharray="0.2 0.8"/>
                             <circle class="orbit" cx="50" cy="50" r="25" pathLength="1" stroke-dasharray="0.3 0.7" stroke-dashoffset="0.5"/>
                             <circle class="nucleus" cx="50" cy="50" r="8"/>
                         </svg>
-                        <div class="card-symbol">★</div>
-                        <div class="card-name">${carta.type.toUpperCase()}</div>
+                        <div class="card-symbol">⚡</div>
+                        <div class="card-name" style="font-size: 0.8em;">${carta.tipo}</div>
                     `;
                 } else {
                     cardEl.innerHTML = `
-                        <div class="card-valence">Valência: ${carta.v}</div>
+                        <div class="card-valence">Val: ${carta.v}</div>
                         <svg class="card-atom" viewBox="0 0 100 100">
                             <circle class="orbit" cx="50" cy="50" r="35" pathLength="1" stroke-dasharray="0.2 0.8"/>
                             <circle class="orbit" cx="50" cy="50" r="25" pathLength="1" stroke-dasharray="0.3 0.7" stroke-dashoffset="0.5"/>
@@ -286,34 +590,67 @@
             atualizarBotoes();
         }
 
+        function mostrarTooltip(carta, e) {
+            const tooltip = document.getElementById('card-info-tooltip');
+            let info = '';
+            if (carta.isSpecial) {
+                info = `<strong>${carta.nome}</strong><br>${carta.descr}`;
+            } else {
+                info = `<strong>${carta.n}</strong><br>Símbolo: ${carta.s}<br>Tipo: ${carta.t}<br>Valência: ${carta.v}`;
+            }
+            tooltip.innerHTML = info;
+            tooltip.style.display = 'block';
+            tooltip.style.left = (e.pageX + 10) + 'px';
+            tooltip.style.top = (e.pageY + 10) + 'px';
+        }
+
+        function esconderTooltip() {
+            document.getElementById('card-info-tooltip').style.display = 'none';
+        }
+
         function toggleHelp() {
             const modal = document.getElementById('help-modal');
-            if (modal.style.display === 'flex') {
-                modal.style.display = 'none';
-            } else {
-                modal.style.display = 'flex';
-            }
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
         }
 
         function toggleCarta(carta) {
             if (!jogoEmAndamento) return;
             const index = selecionadas.indexOf(carta.instId);
-            if (index > -1) selecionadas.splice(index, 1); else selecionadas.push(carta.instId);
+            if (index > -1) {
+                selecionadas.splice(index, 1);
+            } else {
+                selecionadas.push(carta.instId);
+            }
+            renderMao();
+        }
+
+        function desselecinarTodas() {
+            selecionadas = [];
             renderMao();
         }
 
         function atualizarBotoes() {
             const numSel = selecionadas.length;
+            const baralhoVazio = baralho.length === 0;
             document.getElementById('btn-confirmar').disabled = numSel < 2;
-            document.getElementById('btn-comprar').disabled = numSel !== 1;
-            const msg = numSel === 0 ? '🌀 Selecione cartas para ligar ou trocar!' : numSel === 1 ? '📊 1 carta. Clique Comprar para trocar!' : '✅ ' + numSel + ' cartas. Clique Confirmar!';
+            document.getElementById('btn-comprar').disabled = numSel !== 1 || baralhoVazio;
+            // botão de pular desabilitado: encerramento é automático ao esgotar o deck
+            document.getElementById('btn-pular').disabled = true;
+            let msg = '🌀 Selecione cartas para ligar ou trocar!';
+            if (baralhoVazio) {
+                msg = '⚠️ Deck vazio! Use Passar para mudar de jogador.';
+            } else if (numSel === 1) {
+                msg = '📊 1 carta. Clique Comprar para trocar!';
+            } else if (numSel > 1) {
+                msg = '✅ ' + numSel + ' cartas. Clique Confirmar!';
+            }
             document.getElementById('msg-box').innerText = msg;
         }
 
         function comprarCarta() {
-            if (!jogoEmAndamento || selecionadas.length !== 1 || baralho.length === 0) { 
-                document.getElementById('msg-box').innerText = baralho.length === 0 ? '⚠️ Deck vazio!' : '❌ Selecione 1 carta!'; 
-                return; 
+            if (!jogoEmAndamento || selecionadas.length !== 1 || baralho.length === 0) {
+                mostrarNotificacao(baralho.length === 0 ? '⚠️ Deck vazio! Use Passar.' : '❌ Selecione 1 carta!', 'erro');
+                return;
             }
             const idx = jogadores[turnoAtivo].mao.findIndex(c => c.instId === selecionadas[0]);
             jogadores[turnoAtivo].mao.splice(idx, 1);
@@ -322,53 +659,104 @@
             setTimeout(proximoTurno, 1500);
         }
 
+        function pularTurno() {
+            if (!jogoEmAndamento || baralho.length > 0) return;
+            selecionadas = [];
+            document.getElementById('msg-box').innerText = '⏭️ Turno pulado. Próximo jogador!';
+            setTimeout(proximoTurno, 800);
+        }
+
         function confirmarJogada() {
-            if (!jogoEmAndamento || selecionadas.length < 2) { 
-                document.getElementById('msg-box').innerText = '❌ 2+ cartas!'; 
-                return; 
+            if (!jogoEmAndamento || selecionadas.length < 2) {
+                mostrarNotificacao('❌ Selecione 2+ cartas!', 'erro');
+                return;
             }
             const cartasSel = jogadores[turnoAtivo].mao.filter(c => selecionadas.includes(c.instId));
             const resultado = validarLigacao(cartasSel);
+
             if (resultado.valida) {
                 let pts = resultado.pontos;
-                if (cartasSel.length === 5) { pts *= 1.5; document.getElementById('msg-box').innerText = '🌟 Mão Limpa! +50%'; } else document.getElementById('msg-box').innerText = resultado.tipo + ' válida! +' + pts + ' pts';
+                const comboAtual = jogadores[turnoAtivo].combo;
+
+                // Aumentar combo
+                jogadores[turnoAtivo].combo++;
+                jogadores[turnoAtivo].maxCombo = Math.max(jogadores[turnoAtivo].maxCombo, jogadores[turnoAtivo].combo);
+
+                // Aplicar multiplicador
+                pts = Math.floor(pts * multiplicador);
+
+                // Mão limpa (todas 5 cartas)
+                let bonusMaoLimpa = '';
+                if (cartasSel.length === 5) {
+                    pts = Math.floor(pts * 1.5);
+                    bonusMaoLimpa = ' (Mão Limpa +50%)';
+                }
+
+                // Perfeição (3+ ligações válidas)
+                perfeitoCount++;
+                let bonusPerfeicao = '';
+                if (perfeitoCount >= 3) {
+                    pts += 100;
+                    bonusPerfeicao = ' + BÔNUS PERFEIÇÃO +100!';
+                    criarComboVisual('🏆 PERFEIÇÃO!', window.innerWidth/2, window.innerHeight/2);
+                    perfeitoCount = 0;
+                }
+
                 jogadores[turnoAtivo].pontos += pts;
                 jogadores[turnoAtivo].mao = jogadores[turnoAtivo].mao.filter(c => !selecionadas.includes(c.instId));
-                while (jogadores[turnoAtivo].mao.length < 5 && baralho.length > 0) jogadores[turnoAtivo].mao.push(baralho.pop());
+
+                // Repor mão
+                while (jogadores[turnoAtivo].mao.length < 5 && baralho.length > 0) {
+                    jogadores[turnoAtivo].mao.push(baralho.pop());
+                }
+
+                const comboMensagem = comboAtual > 0 ? ' | COMBO x' + jogadores[turnoAtivo].combo : '';
+                document.getElementById('msg-box').innerText = resultado.tipo + ' +' + pts + ' pts' + bonusMaoLimpa + bonusPerfeicao + comboMensagem;
+
+                // Mostrar partícula flutuante
+                criarParticula('+' + pts, window.innerWidth/2, window.innerHeight/2, '#ffff00');
+
                 atualizarPlacar();
                 setTimeout(() => { if (checkGameEnd()) return; proximoTurno(); }, 2000);
-            } else document.getElementById('msg-box').innerText = '❌ Ligação inválida: ' + resultado.tipo;
-        }
+            } else {
+                document.getElementById('msg-box').innerText = resultado.tipo;
+                mostrarNotificacao(resultado.tipo, 'erro');
 
-        function validarLigacao(cartas) {
-            const hasSpecial = cartas.some(c => c.type && c.type !== 'element');
-            if (hasSpecial) return { valida: false, tipo: 'Cartas especiais pendentes' };
-            
-            const metais = cartas.filter(c => c.t === 'metal');
-            const ametais = cartas.filter(c => c.t === 'ametal');
-            const totalValence = cartas.reduce((sum, c) => sum + c.v, 0);
-            
-            if (metais.length > 0 && ametais.length > 0) {
-                if (totalValence % 2 === 0) return { valida: true, pontos: 25 + ametais.length * 5, tipo: 'Iônica ✓ Valência: ' + totalValence };
-            } else if (metais.length > 1) {
-                return { valida: true, pontos: 20, tipo: 'Metálica ✓' };
-            } else if (ametais.length >= 2) {
-                return { valida: true, pontos: 20 + ametais.length * 10, tipo: 'Covalente ✓ Valência: ' + totalValence };
+                if (jogadores[turnoAtivo].shield) {
+                    jogadores[turnoAtivo].shield = false;
+                    mostrarNotificacao('🛡️ Escudo ativado! Combo preservado!', 'sucesso');
+                } else {
+                    jogadores[turnoAtivo].combo = 0;
+                    perfeitoCount = 0;
+                }
+
+                setTimeout(proximoTurno, 2000);
             }
-            
-            return { valida: false, tipo: 'Valência inválida (total ' + totalValence + ')' };
         }
 
         function atualizarPlacar() {
             jogadores.forEach((j, i) => {
                 const el = document.getElementById('p' + i + '-score');
-                el.innerText = j.nome + ': ' + j.pontos;
+                let texto = j.nome + ': ' + j.pontos;
+                if (j.combo > 0) texto += ' | 🔥' + j.combo;
+                el.innerText = texto;
                 el.classList.toggle('active', i === turnoAtivo);
             });
+
+            // Atualizar combo meter
+            const comboAtual = jogadores[turnoAtivo].combo;
+            const comboMeter = document.getElementById('combo-meter');
+            if (comboAtual > 0) {
+                comboMeter.innerText = '🔥 COMBO x' + comboAtual;
+                comboMeter.style.display = 'block';
+            } else {
+                comboMeter.style.display = 'none';
+            }
         }
 
         window.addEventListener('load', initGame);
     </script>
 </body>
 </html>
+
 
