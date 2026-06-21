@@ -127,12 +127,42 @@
         .difficulty-select { position: fixed; bottom: 30px; left: 30px; background: rgba(100,149,237,0.3); border: 2px solid var(--neon-cyan); border-radius: 15px; padding: 15px; z-index: 35; }
         .difficulty-select button { padding: 8px 15px; margin: 5px; font-size: 0.9em; }
         
-        @media (max-width: 768px) { 
-            .card { width: 110px; height: 160px; } 
-            .hand { gap: 10px; padding: 15px; } 
-            #mesa { width: 95%; padding: 15px; }
-            #combo-meter { font-size: 1em; padding: 8px 15px; }
-            #multiplier-display { bottom: 15px; right: 15px; font-size: 1em; }
+        @media (max-width: 1024px) {
+            #hud { flex-wrap: wrap; gap: 8px; justify-content: center; }
+            .player-score { font-size: 0.95em; padding: 8px 14px; }
+            #game-board { padding: 10px 5px; }
+            #mesa { width: 95%; max-width: 100%; padding: 15px; }
+            #current-hand { width: 100%; }
+            .hand { gap: 12px; padding: 15px; justify-content: center; }
+            .controls { flex-wrap: wrap; gap: 8px; padding: 10px; top: 60px; position: sticky; }
+            button { font-size: 1em; padding: 12px 20px; min-width: 120px; }
+            #btn-help { top: 70px; right: 12px; padding: 10px 16px; }
+            #overlay h1, #win-overlay h1 { font-size: 2.5em; }
+            #win-message { font-size: 2em; }
+            #final-ranking { max-width: 100%; }
+        }
+
+        @media (max-width: 768px) {
+            body { min-height: 100vh; }
+            #hud { flex-direction: column; align-items: stretch; padding: 10px; }
+            .player-score { width: 100%; font-size: 0.85em; padding: 8px 12px; }
+            #msg-box { font-size: 1em; height: auto; padding: 10px 5px; }
+            #mesa { width: 100%; padding: 12px; min-height: 160px; }
+            .hand { gap: 8px; padding: 12px; }
+            .card { width: 100px; height: 150px; padding: 12px; }
+            .card-atom { width: 70px; height: 70px; }
+            .card-symbol { font-size: 2em; }
+            .card-name { font-size: 0.9em; }
+            .card-valence { font-size: 0.8em; padding: 3px 6px; }
+            .controls { position: relative; top: 0; flex-wrap: wrap; padding: 10px; justify-content: center; }
+            button { min-width: 100px; font-size: 0.95em; padding: 10px 16px; }
+            #btn-help { position: fixed; top: auto; bottom: 15px; right: 15px; font-size: 1.1em; }
+            #combo-meter { top: auto; bottom: 90px; left: 50%; transform: translateX(-50%); font-size: 0.95em; padding: 8px 14px; }
+            #multiplier-display { bottom: 50px; right: 15px; font-size: 0.95em; padding: 10px 14px; }
+            #card-info-tooltip { max-width: 200px; font-size: 0.8em; }
+            #win-overlay h1 { font-size: 2.2em; }
+            #win-message { font-size: 1.8em; }
+            #final-ranking { gap: 10px; margin-top: 15px; }
         }
     </style>
 </head>
@@ -758,5 +788,7 @@
     </script>
 </body>
 </html>
+
+
 
 
